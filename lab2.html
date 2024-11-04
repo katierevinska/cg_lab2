@@ -73,6 +73,7 @@
     <div class="controls">
         <button id="linearContrast">Линейное контрастирование</button>
         <button id="equalize">Эквализация гистограммы</button>
+        <button id="hsvEqualize">HSV Эквализация</button>
         <button id="gaussianBlur">Гауссово размытие</button>
     </div>
 
@@ -190,6 +191,24 @@
             processedMat = currentMat.clone();
             displayResult(currentMat, processedCanvas);
             currentMat.delete();
+            channels.delete();
+        });
+
+        document.getElementById('hsvEqualize').addEventListener('click', () => {
+            if (!srcMat) return;
+            const currentMat = new cv.Mat();
+            const hsv = new cv.Mat();
+            cv.cvtColor(srcMat, hsv, cv.COLOR_RGBA2RGB);
+            cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
+            const channels = new cv.MatVector();
+            cv.split(hsv, channels);
+            cv.equalizeHist(channels.get(2), channels.get(2));  // Эквализация только яркости
+            cv.merge(channels, hsv);
+            cv.cvtColor(hsv, currentMat, cv.COLOR_HSV2RGB);
+            processedMat = currentMat.clone();
+            displayResult(currentMat, processedCanvas);
+            currentMat.delete();
+            hsv.delete();
             channels.delete();
         });
 
