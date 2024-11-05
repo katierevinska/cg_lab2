@@ -72,9 +72,9 @@
     
     <div class="controls">
         <button id="linearContrast">Линейное контрастирование</button>
-        <button id="equalize">Эквализация гистограммы</button>
-        <button id="hsvEqualize">HSV Эквализация</button>
-        <button id="gaussianBlur">Гауссово размытие</button>
+        <button id="equalize">RGB Эквализация гистограммы</button>
+        <button id="hsvEqualize">HSV Эквализация гистограммы</button>
+        <button id="gaussianBlur">Сглаживание</button>
     </div>
 
     <div class="radio-buttons">
@@ -127,6 +127,7 @@
                     processedCanvas.height = img.height;
                     originalCtx.drawImage(img, 0, 0, img.width, img.height);
                     srcMat = cv.imread(originalCanvas);
+                    processedMat = null; // Сбрасываем обработанное изображение
                     highlightActiveContainer('original');
                     document.getElementById('alertMessage').textContent = '';
                 }
@@ -168,8 +169,16 @@
             }
         }
 
+        function showAlert(message) {
+            const alertMessage = document.getElementById('alertMessage');
+            alertMessage.textContent = message;
+        }
+
         document.getElementById('linearContrast').addEventListener('click', () => {
-            if (!srcMat) return;
+            if (!srcMat) {
+                showAlert('Пожалуйста, загрузите оригинальное изображение перед обработкой.');
+                return;
+            }
             const currentMat = new cv.Mat();
             const alpha = 1.5; 
             const beta = 0;    
@@ -180,7 +189,10 @@
         });
 
         document.getElementById('equalize').addEventListener('click', () => {
-            if (!srcMat) return;
+            if (!srcMat) {
+                showAlert('Пожалуйста, загрузите оригинальное изображение перед эквализацией.');
+                return;
+            }
             const currentMat = new cv.Mat();
             const channels = new cv.MatVector();
             cv.split(srcMat, channels);
@@ -195,7 +207,10 @@
         });
 
         document.getElementById('hsvEqualize').addEventListener('click', () => {
-            if (!srcMat) return;
+            if (!srcMat) {
+                showAlert('Пожалуйста, загрузите оригинальное изображение перед HSV эквализацией.');
+                return;
+            }
             const currentMat = new cv.Mat();
             const hsv = new cv.Mat();
             cv.cvtColor(srcMat, hsv, cv.COLOR_RGBA2RGB);
@@ -213,7 +228,10 @@
         });
 
         document.getElementById('gaussianBlur').addEventListener('click', () => {
-            if (!srcMat) return;
+            if (!srcMat) {
+                showAlert('Пожалуйста, загрузите оригинальное изображение перед сглаживанием.');
+                return;
+            }
             const currentMat = new cv.Mat();
             const ksize = new cv.Size(5, 5);
             cv.GaussianBlur(srcMat, currentMat, ksize, 0);
@@ -226,13 +244,17 @@
             const mode = document.querySelector('input[name="histogramMode"]:checked').value;
             const alertMessage = document.getElementById('alertMessage');
 
-            if (mode === 'original' && srcMat) {
+            if (mode === 'original') {
+                if (!srcMat) {
+                    showAlert('Пожалуйста, загрузите оригинальное изображение перед построением гистограммы.');
+                    return;
+                }
                 buildHistogram(srcMat, originalCtx);
                 highlightActiveContainer('original');
                 alertMessage.textContent = '';
             } else if (mode === 'processed') {
                 if (!processedMat) {
-                    alertMessage.textContent = 'Обработанное изображение отсутствует!';
+                    showAlert('Обработанное изображение отсутствует для построения гистограммы! Пожалуйста, обработайте изображение.');
                 } else {
                     processedCtx.drawImage(processedCanvas, 0, 0);
                     buildHistogram(processedMat, processedCtx);
